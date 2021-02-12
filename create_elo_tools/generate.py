@@ -54,12 +54,14 @@ database = download_file("saltybet.sqlite3.bin", "https://salty.imaprettykitty.c
 conn = db_connect("saltybet.sqlite3.bin")
 cur = conn.cursor()
 
-start = time.time()
 
 # get total number of fights
-cur.execute('SELECT * FROM fights') 
+cur.execute('SELECT * FROM fights')
 nFights = len(cur.fetchall())
+print("{0} fights found".format(nFights))
 i=0
+
+start = time.time()
 
 cur.execute('DROP TABLE current')
 cur.execute('ALTER TABLE rankings ADD COLUMN elo default 1000')
@@ -68,10 +70,6 @@ fightercur = conn.cursor()
 query_str = 'UPDATE rankings SET elo=? WHERE fighter=?'
 
 cur.execute('SELECT * FROM fights') 
-
-# get total number of fights
-nFights = len(cur.fetchall())
-i=0
 
 for row in cur:
     (winner, loser) = row[1], row[2]
