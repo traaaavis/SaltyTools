@@ -56,6 +56,11 @@ cur = conn.cursor()
 
 start = time.time()
 
+# get total number of fights
+cur.execute('SELECT * FROM fights') 
+nFights = len(cur.fetchall())
+i=0
+
 cur.execute('DROP TABLE current')
 cur.execute('ALTER TABLE rankings ADD COLUMN elo default 1000')
 
