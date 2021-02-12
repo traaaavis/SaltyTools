@@ -2,6 +2,7 @@ import os
 import wget
 import sqlite3
 import math
+import time
 
 #constant K - we can tweak in here
 
@@ -53,6 +54,8 @@ database = download_file("saltybet.sqlite3.bin", "https://salty.imaprettykitty.c
 conn = db_connect("saltybet.sqlite3.bin")
 cur = conn.cursor()
 
+start = time.time()
+
 cur.execute('DROP TABLE current')
 cur.execute('ALTER TABLE rankings ADD COLUMN elo default 1000')
 
@@ -60,13 +63,22 @@ fightercur = conn.cursor()
 query_str = 'UPDATE rankings SET elo=? WHERE fighter=?'
 
 cur.execute('SELECT * FROM fights') 
+
+# get total number of fights
+nFights = len(cur.fetchall())
+i=0
+
 for row in cur:
     (winner, loser) = row[1], row[2]
+    i+=1
 
     try:
         Wr = get_fighter_rank(winner)
         Lr = get_fighter_rank(loser)
-        print("{0} beat {1}".format(winner,loser))
+
+        if(i%1000 == 0):
+            print("{:.2f} percent complete".format((i/nFights)*100))
+            
         (Wp, Lp) = ExpectedProbabilities(Wr, Lr)
         (Wr, Lr) = DetermineNewRankings(Wr, Wp, Lr, Lp)
 
@@ -74,7 +86,10 @@ for row in cur:
         set_fighter_rank(loser, Lr)
 
         conn.commit()
+        
     except:
         pass
 
 conn.close()
+
+print("ELO DB rebuilt in {:.2f} seconds.".format(time.time() - start))
